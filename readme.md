@@ -16,13 +16,13 @@ aws s3api put-bucket-tagging --bucket maxit-bot-annualreports --tagging 'TagSet=
 
 2. DynamoDB set-up - Metadata DB (tag: maxit)
 
-Table Design: AnnualReportsMetadata
-Primary Key
-    Partition Key (report_id) – A unique identifier for each report (e.g., CompanyX-2024-Q1).
-    Sort Key (year) (Optional, if you want yearly retrievals) – Numeric year (e.g., 2024).
-Composite GSI on company_name + year
-    A GSI with company name as partition key and year as the sort key allows efficient sorting by year when querying.
-    You can easily retrieve the latest report by sorting in descending order.
+Table Design: AnnualReportsMetadata    
+Primary Key  
+    Partition Key (report_id) – A unique identifier for each report (e.g., CompanyX-2024-Q1).      
+    Sort Key (year) (Optional, if you want yearly retrievals) – Numeric year (e.g., 2024).  
+Composite GSI on company_name + year  
+    A GSI with company name as partition key and year as the sort key allows efficient sorting by year when querying.  
+    You can easily retrieve the latest report by sorting in descending order.  
 
 Table Schema
 | Attribute Name       | Data Type   | Description |
