@@ -9,6 +9,11 @@ Stack 1:
 Order of build: 
 
 1. S3 bucket set-up (tag: maxit)
+``` 
+aws s3api create-bucket --bucket maxit-bot-annualreports --region us-east-2 
+aws s3api put-bucket-tagging --bucket maxit-bot-annualreports --tagging 'TagSet=[{Key=project,Value=maxit}]'
+```
+
 2. DynamoDB set-up - Metadata DB (tag: maxit)
 3. Lambda - Extract Metadata (tag: maxit)
 4. Document DB - Client Insights DB (tag: maxit)
