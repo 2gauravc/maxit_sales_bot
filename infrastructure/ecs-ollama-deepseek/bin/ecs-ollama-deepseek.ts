@@ -1,7 +1,0 @@
-#!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { OllamaDeepSeekStack } from '../lib/OllamaDeepSeekStack';
-
-const app = new cdk.App();
-new OllamaDeepSeekStack(app, 'OllamaDeepSeekStack', {});
