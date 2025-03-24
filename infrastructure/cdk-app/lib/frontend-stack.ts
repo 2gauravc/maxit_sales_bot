@@ -35,7 +35,7 @@ export class FrontendStack extends cdk.Stack {
             publicLoadBalancer: true,
             assignPublicIp: true
         });
-
+        webuiService.loadBalancer.setAttribute('idle_timeout.timeout_seconds', '300');
         new cdk.CfnOutput(this, 'ChatInterfaceURL', {
             value: webuiService.loadBalancer.loadBalancerDnsName
         });

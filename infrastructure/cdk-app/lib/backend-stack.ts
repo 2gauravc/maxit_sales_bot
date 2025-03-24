@@ -2,6 +2,11 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_patterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cr from 'aws-cdk-lib/custom-resources';
+import * as path from 'path';
+import { CustomResource } from 'aws-cdk-lib';
+
 
 interface BackendStackProps extends cdk.StackProps {
     vpc: ec2.Vpc;
@@ -32,7 +37,29 @@ export class BackendStack extends cdk.Stack {
 
         // ✅ Store Load Balancer DNS Name (String Only!)
         this.ollamaLoadBalancerDnsName = ollamaService.loadBalancer.loadBalancerDnsName;
+        
+        // 🔥 Increase idle timeout to 5 minutes
+        ollamaService.loadBalancer.setAttribute('idle_timeout.timeout_seconds', '300');
+        
+        /* // Lambda function to trigger model pull
+        
+        const pullModelFn = new lambda.Function(this, 'PullModelFunction', {
+            runtime: lambda.Runtime.PYTHON_3_9,
+            handler: 'index.handler',
+            code: lambda.Code.fromAsset(path.join(__dirname, '../lambdas/pull-model')),
+            timeout: cdk.Duration.seconds(60),
+        });
+        
+        // Trigger it as a CustomResource
 
+        const pullModel = new CustomResource(this, 'TriggerModelPull', {
+            serviceToken: pullModelFn.functionArn,
+            properties: {
+            Url: ollamaService.loadBalancer.loadBalancerDnsName,
+            Model: 'orca-mini:3b',
+            }
+        });
+        */
         new cdk.CfnOutput(this, 'OllamaLoadBalancerURL', {
             value: this.ollamaLoadBalancerDnsName
         });
