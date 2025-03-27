@@ -28,7 +28,11 @@ export class FrontendStack extends cdk.Stack {
                     'MODEL_FILTER_ENABLED': 'false',
                     'WEBUI_DEBUG_MODE': 'true',
                     'OLLAMA_API_OVERRIDE_BASE_URL': `http://${props.ollamaLoadBalancerDnsName}`,
-                    'ENABLE_OLLAMA_MANAGEMENT': 'true'
+                    'ENABLE_OLLAMA_MANAGEMENT': 'true',
+                    'STORAGE_PROVIDER':'s3', 
+                    'S3_ENDPOINT_URL': 'https://s3.us-east-1.amazonaws.com',
+                    'S3_REGION_NAME': 'us-east-1',
+                    'S3_BUCKET_NAME':'ppt-bkt'
                 },
                 enableLogging: true
             },
