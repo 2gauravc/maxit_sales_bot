@@ -43,5 +43,10 @@ export class FrontendStack extends cdk.Stack {
         new cdk.CfnOutput(this, 'ChatInterfaceURL', {
             value: webuiService.loadBalancer.loadBalancerDnsName
         });
+        // 👉 Add this block below
+        new cdk.CfnOutput(this, 'ModelDownloadCommand', {
+        value: `curl -X POST http://${props.ollamaLoadBalancerDnsName}/api/pull -d '{"name": "gemma:2b"}'`,
+        description: 'Command to trigger model download (gemma:2b)',
+        });
     }
 }

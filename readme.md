@@ -24,19 +24,38 @@ aws --version
 If you do not have the CLI installed, follow the steps here [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 b) Set up your AWS credentials     
-Maxit will need permissions to create AWS resources on your behalf. Set up your AWS account credentials using 
+Maxit will need permissions to create AWS resources on your behalf. Set up your AWS account credentials and the right region (where you intend to deploy the infra) using 
 
 ```
 aws configure
 ```
-**Step 3** Clone the repo 
+Test the aws configuration 
+
+```
+aws sts get-caller-identity
+```
+
+**Step 3** Create a secret and store it in AWS Secrets Manager
+
+This secret will be used by Bedrock Access Gateway to authenticate connections.  
+
+a) Generate a secret using `openssl rand -hex 32
+
+b) Store the secret in AWS Secrets Manager. 
+- Open Secrets Manager using the AWS Management Console 
+- Navigate to the right region - where you intend to deploy the infra 
+- Save the secret 
+- Note the Secret ARN
+
+
+**Step 4** Clone the repo 
 
 In a suitable directory clone the git repo (on Github codespaces this should be inside /workspaces/)
 ```
 git clone https://github.com/2gauravc/maxit_sales_bot.git
 ```
 
-**Step-4** Set up the AWS CDK 
+**Step 5** Set up the AWS CDK 
 
 Install the dependencies. 
 ```
@@ -50,7 +69,12 @@ cdk bootstrap
 cdk synth
 ```
 
-**Step-5** Deploy the infrastructure 
+**Step 6** Update the Secret ARN 
+
+- Open the file infrastructure/cdk-app/lib/bedrock-stack.ts
+- Under parameters -> ApiKeySecretArn: Update the ARN
+
+**Step 7** Deploy the infrastructure 
 
 ```
 cdk deploy
@@ -80,7 +104,12 @@ Notes:
 curl -X POST http://${ollamaService.loadBalancer.loadBalancerDnsName}/api/pull -d '{"name": "gemma:2b"}'
 ```
 
-2) Enable Web search on OpenWebUI 
+2) Add Bedrock Access Gateway connection 
+- On the admin panel,open 'Connections'
+- Add a new OpenAI connection 
+- Enter the APIBaseURL (output of the Bedrock Stack) and the secret key you generated in Step 3. 
+
+3) Enable Web search on OpenWebUI 
 
 - On OpenWebUI front end go to 'Admin Panel'-> 'Settings' -> 'Web Search'. Provide the [Tavily](https://tavily.com/) API key and toggle on 'Web Search'
 
