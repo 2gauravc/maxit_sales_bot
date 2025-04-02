@@ -10,6 +10,7 @@ const env = {
 };
 
 const app = new cdk.App();
+cdk.Tags.of(app).add('Project', 'Maxit');
 
 // ✅ Deploy Shared Infrastructure First
 const sharedStack = new SharedStack(app, 'SharedStack', { env });
@@ -34,6 +35,7 @@ const frontendStack = new FrontendStack(app, 'FrontendStack', {
     vpc: sharedStack.vpc,
     ecsCluster: sharedStack.ecsCluster,
     ollamaLoadBalancerDnsName: backendStack.ollamaLoadBalancerDnsName,  // ✅ Passing String, Not Full Object
+    s3BucketName: 'ppt-bkt',
     env
 });
 frontendStack.addDependency(backendStack);
