@@ -69,10 +69,12 @@ cdk bootstrap
 cdk synth
 ```
 
-**Step 6** Update the Secret ARN 
+**Step 6** Update the context variable  
 
-- Open the file infrastructure/cdk-app/lib/bedrock-stack.ts
-- Under parameters -> ApiKeySecretArn: Update the ARN
+Update the following context variables in the cdk.context.json file. 
+- "s3BucketName": "XX", \\ This is the bucket to store the uploaded files 
+  "s3BucketRegion": "us-east-1", \\ Region in which the bucket is created 
+  "bedrockAccessGatewaysecretArn":"arn:aws:secretsmanager:<<region>>:<<account>>:secret:<<secret-name>>" \\ This is the arn of the secret (from Step 3)
 
 **Step 7** Deploy the infrastructure 
 
