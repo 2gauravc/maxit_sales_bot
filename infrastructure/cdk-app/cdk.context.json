@@ -3,5 +3,8 @@
     "us-east-2a",
     "us-east-2b",
     "us-east-2c"
-  ]
+  ],
+  "s3BucketName": "ppt-bkt",
+  "s3BucketRegion": "us-east-1",
+  "bedrockAccessGatewaysecretArn": "arn:aws:secretsmanager:us-east-2:821052193763:secret:my-secret-abc123"
 }

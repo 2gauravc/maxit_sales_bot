@@ -9,12 +9,14 @@ interface FrontendStackProps extends cdk.StackProps {
     ecsCluster: ecs.Cluster;
     ollamaLoadBalancerDnsName: string;  // ✅ Receiving Only ALB DNS Name (String)
     s3BucketName: string;
+    s3BucketRegion: string;
 }
 
 export class FrontendStack extends cdk.Stack {
     constructor(scope: cdk.App, id: string, props: FrontendStackProps) {
         super(scope, id, props);
         const bucketName = props.s3BucketName;
+        const bucketRegion = props.s3BucketRegion;
 
         // ✅ WebUI Service (ECS Fargate)
         const webuiService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, 'WebUIService', {
@@ -33,8 +35,8 @@ export class FrontendStack extends cdk.Stack {
                     'OLLAMA_API_OVERRIDE_BASE_URL': `http://${props.ollamaLoadBalancerDnsName}`,
                     'ENABLE_OLLAMA_MANAGEMENT': 'true',
                     'STORAGE_PROVIDER':'s3', 
-                    'S3_ENDPOINT_URL': 'https://s3.us-east-1.amazonaws.com',
-                    'S3_REGION_NAME': 'us-east-1',
+                    'S3_ENDPOINT_URL': 'https://s3.${bucketRegion}.amazonaws.com',
+                    'S3_REGION_NAME': bucketRegion,
                     'S3_BUCKET_NAME':bucketName
                 },
                 enableLogging: true
