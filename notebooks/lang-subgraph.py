@@ -1,10 +1,17 @@
 import argparse
 from langgraph.graph import START, StateGraph
 from typing import TypedDict
-
-# Define sub-graph peer-comparison 
-
 from typing import TypedDict, List, Literal, Optional
+
+
+# Define all graph states 
+
+class RMAgentState(TypedDict, total=False):
+    query: str
+    client_id: str
+    framework_id: Literal["peer_comparison", "debt_profiling"]
+    result: str
+
 class PeerComparisonState(TypedDict, total=False):
     framework_id: Literal["peer_comparison"]
     query: str
@@ -17,27 +24,43 @@ class PeerComparisonState(TypedDict, total=False):
     response_trace: List[str]
     memory_refs: List[str]
 
+class DebtProfilingState(TypedDict, total=False):
+    framework_id: Literal["debt_profiling"]
+    query: str
+    client_id: str
+    industry_id: Optional[str]
+    financials: dict            # { "XYZ": { "debt": ..., "cash": ..., ... } }
+    debt_metrics: dict          # e.g., { "Debt/Equity": 1.2, "NetDebt/EBITDA": 3.1 }
+    benchmark_metrics: dict     # e.g., industry or peer group averages
+    interpretation: str         # final LLM output: "Moderate leverage, room to borrow"
+    memory_refs: List[str]
 
-from langgraph.graph import StateGraph
+# Define Peer Comparison sub-graph
+
 class PeerComparisonGraph:
-    def __init__(self):
+    def __init__(self, framework: str = "langgraph"):
+        self.framework = framework
         self.graph = self._build_graph()
-
+    
     def _build_graph(self):
-        graph = StateGraph(PeerComparisonState)
+        if self.framework == "langgraph":
+            graph = StateGraph(PeerComparisonState)
 
-        graph.add_node("load_financials", self.load_financial_data)
-        graph.add_node("revenue_comparison", self.revenue_comparison)
-        graph.add_node("cost_structure_comparison", self.cost_structure_comparison)
-        graph.add_node("profitability_comparison", self.profitability_comparison)
-        graph.add_node("leverage_comparison", self.leverage_comparison)
-        graph.add_node("peer_scoring_summary", self.peer_scoring_summary)
-        graph.set_entry_point("load_financials")
-        graph.add_edge("load_financials", "revenue_comparison")
-        graph.add_edge("revenue_comparison", "cost_structure_comparison")
-        graph.add_edge("cost_structure_comparison", "profitability_comparison")
-        graph.add_edge("profitability_comparison", "leverage_comparison")
-        graph.add_edge("leverage_comparison", "peer_scoring_summary")
+            graph.add_node("load_financials", self.load_financial_data)
+            graph.add_node("revenue_comparison", self.revenue_comparison)
+            graph.add_node("cost_structure_comparison", self.cost_structure_comparison)
+            graph.add_node("profitability_comparison", self.profitability_comparison)
+            graph.add_node("leverage_comparison", self.leverage_comparison)
+            graph.add_node("peer_scoring_summary", self.peer_scoring_summary)
+            graph.set_entry_point("load_financials")
+            graph.add_edge("load_financials", "revenue_comparison")
+            graph.add_edge("revenue_comparison", "cost_structure_comparison")
+            graph.add_edge("cost_structure_comparison", "profitability_comparison")
+            graph.add_edge("profitability_comparison", "leverage_comparison")
+            graph.add_edge("leverage_comparison", "peer_scoring_summary")
+
+        else: 
+            raise NotImplementedError(f"Framework {self.framework} not supported yet.")
 
         return graph
 
@@ -67,43 +90,33 @@ class PeerComparisonGraph:
         return final_state
 
 
-# Define Sub-Graph 'Debt Profiling'
-
-from typing import TypedDict, List, Optional, Literal
-class DebtProfilingState(TypedDict, total=False):
-    framework_id: Literal["debt_profiling"]
-    query: str
-    client_id: str
-    industry_id: Optional[str]
-    financials: dict            # { "XYZ": { "debt": ..., "cash": ..., ... } }
-    debt_metrics: dict          # e.g., { "Debt/Equity": 1.2, "NetDebt/EBITDA": 3.1 }
-    benchmark_metrics: dict     # e.g., industry or peer group averages
-    interpretation: str         # final LLM output: "Moderate leverage, room to borrow"
-    memory_refs: List[str]
-
-from langgraph.graph import StateGraph
+# Define 'Debt Profiling' sub-graph
 
 class DebtProfilingGraph:
-    def __init__(self):
+    def __init__(self, framework: str = "langgraph"):
+        self.framework = framework
         self.graph = self._build_graph()
-
+    
     def _build_graph(self):
-        graph = StateGraph(DebtProfilingState)
+        if self.framework == "langgraph":
+            graph = StateGraph(DebtProfilingState)
 
-        # Add LangGraph nodes
-        graph.add_node("load_financial_data", self.load_financial_data)
-        graph.add_node("calculate_debt_metrics", self.calculate_debt_metrics)
-        graph.add_node("fetch_peer_benchmarks", self.fetch_peer_benchmarks)
-        graph.add_node("compare_vs_benchmark", self.compare_vs_benchmark)
-        graph.add_node("synthesize_debt_profile", self.synthesize_debt_profile)
+            # Add LangGraph nodes
+            graph.add_node("load_financial_data", self.load_financial_data)
+            graph.add_node("calculate_debt_metrics", self.calculate_debt_metrics)
+            graph.add_node("fetch_peer_benchmarks", self.fetch_peer_benchmarks)
+            graph.add_node("compare_vs_benchmark", self.compare_vs_benchmark)
+            graph.add_node("synthesize_debt_profile", self.synthesize_debt_profile)
 
-        # Wire up nodes
-        graph.set_entry_point("load_financial_data")
-        graph.add_edge("load_financial_data", "calculate_debt_metrics")
-        graph.add_edge("calculate_debt_metrics", "fetch_peer_benchmarks")
-        graph.add_edge("fetch_peer_benchmarks", "compare_vs_benchmark")
-        graph.add_edge("compare_vs_benchmark", "synthesize_debt_profile")
-
+            # Wire up nodes
+            graph.set_entry_point("load_financial_data")
+            graph.add_edge("load_financial_data", "calculate_debt_metrics")
+            graph.add_edge("calculate_debt_metrics", "fetch_peer_benchmarks")
+            graph.add_edge("fetch_peer_benchmarks", "compare_vs_benchmark")
+            graph.add_edge("compare_vs_benchmark", "synthesize_debt_profile")
+        else: 
+            raise NotImplementedError(f"Framework {self.framework} not supported yet.")
+        
         return graph
 
     def load_financial_data(self, state: DebtProfilingState) -> DebtProfilingState:
@@ -155,14 +168,7 @@ class DebtProfilingGraph:
         state["interpretation"] = summary
         return state
 
-from typing import TypedDict, Literal
-from langgraph.graph import START, StateGraph
-
-class RMAgentState(TypedDict, total=False):
-    query: str
-    client_id: str
-    framework_id: Literal["peer_comparison", "debt_profiling"]
-    result: str
+# Define common nodes (RM Agent)
 
 def detect_framework(state: RMAgentState) -> RMAgentState:
     # Dummy logic for example purposes
@@ -177,10 +183,36 @@ def route_to_subgraph(state: RMAgentState) -> str:
 
 def finalize_response(state: RMAgentState) -> RMAgentState:
     return state 
-def build_rm_agent_graph():
+
+
+# Define RM Agent graph 
+
+class MaxitAgent:
+    def __init__(self, agent_type: str = "langgraph"):
+        self.agent_type = agent_type
+        self.graph = self._build_graph()
+
+    def _build_graph(self):
+        if self.agent_type == "langgraph":
+            return build_rm_agent_graph(framework="langgraph")
+        elif self.agent_type == "llamaindex":
+            raise NotImplementedError("LlamaIndex not yet implemented.")
+        else:
+            raise ValueError(f"Unknown agent_type {self.agent_type}")
+
+    def invoke(self, initial_state: dict):
+        return self.graph.invoke(initial_state)
+
+    def save_graph_image(self, filename="rm_agent_graph.png", xray=1):
+        png_data = self.graph.get_graph(xray=xray).draw_mermaid_png()
+        with open(filename, "wb") as f:
+            f.write(png_data)
+        print(f"Graph saved to {filename}")
+
+def build_rm_agent_graph(framework: str = "langgraph"):
     # Import your sub-agent graphs
-    peer_comparison_graph = PeerComparisonGraph().graph.compile()
-    debt_profiling_graph = DebtProfilingGraph().graph.compile()
+    peer_comparison_graph = PeerComparisonGraph(framework=framework).graph.compile()
+    debt_profiling_graph = DebtProfilingGraph(framework=framework).graph.compile()
 
     # Build the parent RM Agent graph
     rm_graph_builder = StateGraph(RMAgentState)
@@ -205,26 +237,30 @@ def build_rm_agent_graph():
     rm_agent_graph = rm_graph_builder.compile()
     return rm_agent_graph
 
-def save_graph_image(graph, filename="rm_agent_graph.png", xray=1):
-    """
-    Save the LangGraph graph visualization to disk.
-    
-    Args:
-        graph: The compiled LangGraph object.
-        filename: The filename to save the PNG as.
-        xray: Whether to show nested graphs (1 for yes, 0 for no).
-    """
-    png_data = graph.get_graph(xray=xray).draw_mermaid_png()
-    with open(filename, "wb") as f:
-        f.write(png_data)
-    print(f"Graph saved to {filename}")
+# Maxit Agent Wrapper
 
-# Get the PNG image bytes
-#png_data = rm_agent_graph.get_graph(xray=1).draw_mermaid_png()
-# Save it to disk
-#with open("rm_agent_graph.png", "wb") as f:
-#    f.write(png_data)
-#print("Saved to rm_agent_graph.png")
+class MaxitAgent:
+    def __init__(self, agent_type: str = "langgraph"):
+        self.agent_type = agent_type
+        self.graph = self._build_graph()
+
+    def _build_graph(self):
+        if self.agent_type == "langgraph":
+            return build_rm_agent_graph(framework="langgraph")
+        elif self.agent_type == "llamaindex":
+            raise NotImplementedError("LlamaIndex not yet implemented.")
+        else:
+            raise ValueError(f"Unknown agent_type {self.agent_type}")
+
+    def invoke(self, initial_state: dict):
+        return self.graph.invoke(initial_state)
+
+    def save_graph_image(self, filename="rm_agent_graph.png", xray=1):
+        png_data = self.graph.get_graph(xray=xray).draw_mermaid_png()
+        with open(filename, "wb") as f:
+            f.write(png_data)
+        print(f"Graph saved to {filename}")
+# CLI 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run the Maxit RM Agent.")
@@ -261,18 +297,16 @@ def main():
         "query": args.query,
         "client_id": args.client_id
     }
-    #Build the RM agent graph 
-    rm_agent_graph = build_rm_agent_graph()
-
-    # Call RM agent
-    res_state = rm_agent_graph.invoke(initial_state)
+    
+    agent = MaxitAgent(agent_type="langgraph")
+    res_state = agent.invoke(initial_state)
     
     print("\n--- Final State ---")
     print(res_state)
     
     # Save graph if requested
     if args.save_graph.lower() == "yes":
-        save_graph_image(rm_agent_graph)
+        agent.save_graph_image()
     else:
         print("Graph saving skipped as per argument.")
 
