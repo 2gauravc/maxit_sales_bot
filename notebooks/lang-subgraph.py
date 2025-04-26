@@ -35,32 +35,38 @@ class DebtProfilingState(TypedDict, total=False):
     interpretation: str         # final LLM output: "Moderate leverage, room to borrow"
     memory_refs: List[str]
 
+GRAPH_BUILD_HANDLERS = {
+    "langgraph": "build_with_langgraph",
+    "llamaindex": "build_with_llamaindex"  # Future
+}
+
 # Define Peer Comparison sub-graph
 
 class PeerComparisonGraph:
     def __init__(self, framework: str = "langgraph"):
+        if framework not in GRAPH_BUILD_HANDLERS:
+            raise ValueError(f"Unknown framework: {framework}")
         self.framework = framework
-        self.graph = self._build_graph()
+        build_method_name = GRAPH_BUILD_HANDLERS[framework]
+        build_method = getattr(self, build_method_name, None)
+        if not build_method:
+            raise NotImplementedError(f"Build method {build_method_name} not implemented.")
+        self.graph = build_method()
     
-    def _build_graph(self):
-        if self.framework == "langgraph":
-            graph = StateGraph(PeerComparisonState)
-
-            graph.add_node("load_financials", self.load_financial_data)
-            graph.add_node("revenue_comparison", self.revenue_comparison)
-            graph.add_node("cost_structure_comparison", self.cost_structure_comparison)
-            graph.add_node("profitability_comparison", self.profitability_comparison)
-            graph.add_node("leverage_comparison", self.leverage_comparison)
-            graph.add_node("peer_scoring_summary", self.peer_scoring_summary)
-            graph.set_entry_point("load_financials")
-            graph.add_edge("load_financials", "revenue_comparison")
-            graph.add_edge("revenue_comparison", "cost_structure_comparison")
-            graph.add_edge("cost_structure_comparison", "profitability_comparison")
-            graph.add_edge("profitability_comparison", "leverage_comparison")
-            graph.add_edge("leverage_comparison", "peer_scoring_summary")
-
-        else: 
-            raise NotImplementedError(f"Framework {self.framework} not supported yet.")
+    def build_with_langgraph(self):
+        graph = StateGraph(PeerComparisonState)
+        graph.add_node("load_financials", self.load_financial_data)
+        graph.add_node("revenue_comparison", self.revenue_comparison)
+        graph.add_node("cost_structure_comparison", self.cost_structure_comparison)
+        graph.add_node("profitability_comparison", self.profitability_comparison)
+        graph.add_node("leverage_comparison", self.leverage_comparison)
+        graph.add_node("peer_scoring_summary", self.peer_scoring_summary)
+        graph.set_entry_point("load_financials")
+        graph.add_edge("load_financials", "revenue_comparison")
+        graph.add_edge("revenue_comparison", "cost_structure_comparison")
+        graph.add_edge("cost_structure_comparison", "profitability_comparison")
+        graph.add_edge("profitability_comparison", "leverage_comparison")
+        graph.add_edge("leverage_comparison", "peer_scoring_summary")
 
         return graph
 
@@ -94,28 +100,32 @@ class PeerComparisonGraph:
 
 class DebtProfilingGraph:
     def __init__(self, framework: str = "langgraph"):
+        if framework not in GRAPH_BUILD_HANDLERS:
+            raise ValueError(f"Unknown framework: {framework}")
+        
         self.framework = framework
-        self.graph = self._build_graph()
+        build_method_name = GRAPH_BUILD_HANDLERS[framework]
+        build_method = getattr(self, build_method_name, None)
+        if not build_method:
+            raise NotImplementedError(f"Build method {build_method_name} not implemented.")
+        self.graph = build_method()    
     
-    def _build_graph(self):
-        if self.framework == "langgraph":
-            graph = StateGraph(DebtProfilingState)
+    def build_with_langgraph(self):
+        graph = StateGraph(DebtProfilingState)
 
-            # Add LangGraph nodes
-            graph.add_node("load_financial_data", self.load_financial_data)
-            graph.add_node("calculate_debt_metrics", self.calculate_debt_metrics)
-            graph.add_node("fetch_peer_benchmarks", self.fetch_peer_benchmarks)
-            graph.add_node("compare_vs_benchmark", self.compare_vs_benchmark)
-            graph.add_node("synthesize_debt_profile", self.synthesize_debt_profile)
+        # Add LangGraph nodes
+        graph.add_node("load_financial_data", self.load_financial_data)
+        graph.add_node("calculate_debt_metrics", self.calculate_debt_metrics)
+        graph.add_node("fetch_peer_benchmarks", self.fetch_peer_benchmarks)
+        graph.add_node("compare_vs_benchmark", self.compare_vs_benchmark)
+        graph.add_node("synthesize_debt_profile", self.synthesize_debt_profile)
 
-            # Wire up nodes
-            graph.set_entry_point("load_financial_data")
-            graph.add_edge("load_financial_data", "calculate_debt_metrics")
-            graph.add_edge("calculate_debt_metrics", "fetch_peer_benchmarks")
-            graph.add_edge("fetch_peer_benchmarks", "compare_vs_benchmark")
-            graph.add_edge("compare_vs_benchmark", "synthesize_debt_profile")
-        else: 
-            raise NotImplementedError(f"Framework {self.framework} not supported yet.")
+        # Wire up nodes
+        graph.set_entry_point("load_financial_data")
+        graph.add_edge("load_financial_data", "calculate_debt_metrics")
+        graph.add_edge("calculate_debt_metrics", "fetch_peer_benchmarks")
+        graph.add_edge("fetch_peer_benchmarks", "compare_vs_benchmark")
+        graph.add_edge("compare_vs_benchmark", "synthesize_debt_profile")
         
         return graph
 
@@ -184,31 +194,6 @@ def route_to_subgraph(state: RMAgentState) -> str:
 def finalize_response(state: RMAgentState) -> RMAgentState:
     return state 
 
-
-# Define RM Agent graph 
-
-class MaxitAgent:
-    def __init__(self, agent_type: str = "langgraph"):
-        self.agent_type = agent_type
-        self.graph = self._build_graph()
-
-    def _build_graph(self):
-        if self.agent_type == "langgraph":
-            return build_rm_agent_graph(framework="langgraph")
-        elif self.agent_type == "llamaindex":
-            raise NotImplementedError("LlamaIndex not yet implemented.")
-        else:
-            raise ValueError(f"Unknown agent_type {self.agent_type}")
-
-    def invoke(self, initial_state: dict):
-        return self.graph.invoke(initial_state)
-
-    def save_graph_image(self, filename="rm_agent_graph.png", xray=1):
-        png_data = self.graph.get_graph(xray=xray).draw_mermaid_png()
-        with open(filename, "wb") as f:
-            f.write(png_data)
-        print(f"Graph saved to {filename}")
-
 def build_rm_agent_graph(framework: str = "langgraph"):
     # Import your sub-agent graphs
     peer_comparison_graph = PeerComparisonGraph(framework=framework).graph.compile()
@@ -237,29 +222,49 @@ def build_rm_agent_graph(framework: str = "langgraph"):
     rm_agent_graph = rm_graph_builder.compile()
     return rm_agent_graph
 
-# Maxit Agent Wrapper
+AGENT_TYPE_HANDLERS = {
+    "langgraph": {
+        "build_graph": build_rm_agent_graph,
+        "invoke_method": "invoke"
+    },
+    "llamaindex": {
+        "build_graph": None,          # Placeholder for future
+        "invoke_method": "query"
+    }
+}
+
+# Define RM Agent wrapper 
 
 class MaxitAgent:
     def __init__(self, agent_type: str = "langgraph"):
+        if agent_type not in AGENT_TYPE_HANDLERS:
+            raise ValueError(f"Unknown agent type: {agent_type}")
+        
         self.agent_type = agent_type
-        self.graph = self._build_graph()
+        handler_info = AGENT_TYPE_HANDLERS[self.agent_type]
+        
+        # Build graph
+        build_func = handler_info["build_graph"]
+        if build_func is None:
+            raise NotImplementedError(f"Graph building for {self.agent_type} not implemented.")
+        self.graph = build_func(framework=agent_type)  # dynamic build
 
-    def _build_graph(self):
-        if self.agent_type == "langgraph":
-            return build_rm_agent_graph(framework="langgraph")
-        elif self.agent_type == "llamaindex":
-            raise NotImplementedError("LlamaIndex not yet implemented.")
-        else:
-            raise ValueError(f"Unknown agent_type {self.agent_type}")
+        # Save invoke method name
+        self.invoke_method = handler_info["invoke_method"]
 
     def invoke(self, initial_state: dict):
-        return self.graph.invoke(initial_state)
+        return getattr(self.graph, self.invoke_method)(initial_state)
 
     def save_graph_image(self, filename="rm_agent_graph.png", xray=1):
-        png_data = self.graph.get_graph(xray=xray).draw_mermaid_png()
-        with open(filename, "wb") as f:
-            f.write(png_data)
-        print(f"Graph saved to {filename}")
+        if hasattr(self.graph, "get_graph"):
+            png_data = self.graph.get_graph(xray=xray).draw_mermaid_png()
+            with open(filename, "wb") as f:
+                f.write(png_data)
+            print(f"Graph saved to {filename}")
+        else:
+            print(f"Saving graph not supported for agent type {self.agent_type}")
+
+
 # CLI 
 
 def parse_arguments():
