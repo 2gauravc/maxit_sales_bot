@@ -287,7 +287,15 @@ def parse_arguments():
         default="yes",
         help="Whether to save the agent graph visualization (yes/no)."
     )
-    
+    parser.add_argument(
+        "--framework",
+        type=str,
+        required=False,
+        default="langgraph",
+        help="Which agent framework you are using (langgraph)"
+    )
+
+
     return parser.parse_args()
 
 def main():
@@ -298,7 +306,7 @@ def main():
         "client_id": args.client_id
     }
     
-    agent = MaxitAgent(agent_type="langgraph")
+    agent = MaxitAgent(agent_type=args.framework.lower())
     res_state = agent.invoke(initial_state)
     
     print("\n--- Final State ---")
