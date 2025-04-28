@@ -1,12 +1,12 @@
 from langgraph.graph import StateGraph
-from conversation_service.states.rm_states import DebtProfilingState
+from conversation_service.states.debt_profiling_state import DebtProfilingState
 
 GRAPH_BUILD_HANDLERS = {
     "langgraph": "build_with_langgraph",
     "llamaindex": "build_with_llamaindex"  # Future
 }
 
-class DebtProfilingGraph:
+class DebtProfilingWorkflow:
     def __init__(self, framework: str = "langgraph"):
         if framework not in GRAPH_BUILD_HANDLERS:
             raise ValueError(f"Unknown framework: {framework}")

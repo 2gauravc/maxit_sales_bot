@@ -1,12 +1,12 @@
 from langgraph.graph import StateGraph
-from conversation_service.states.rm_states import PeerComparisonState
+from conversation_service.states.peer_comparison_state import PeerComparisonState
 
 GRAPH_BUILD_HANDLERS = {
     "langgraph": "build_with_langgraph",
     "llamaindex": "build_with_llamaindex"  # Future
 }
 
-class PeerComparisonGraph:
+class PeerComparisonWorkflow:
     def __init__(self, framework: str = "langgraph"):
         if framework not in GRAPH_BUILD_HANDLERS:
             raise ValueError(f"Unknown framework: {framework}")

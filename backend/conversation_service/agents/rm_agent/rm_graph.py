@@ -1,8 +1,10 @@
 from langgraph.graph import StateGraph
 from conversation_service.states.rm_states import RMAgentState
-from conversation_service.agents.rm_agent.peer_comparison_graph import PeerComparisonGraph
-from conversation_service.agents.rm_agent.debt_profiling_graph import DebtProfilingGraph
 from conversation_service.frameworks.maxit_agent import MaxitAgent
+
+# Import workflows (now independent)
+from conversation_service.workflows.peer_comparison_workflow import PeerComparisonWorkflow
+from conversation_service.workflows.debt_profiling_workflow import DebtProfilingWorkflow
 
 def detect_framework(state: RMAgentState) -> RMAgentState:
     if "compare" in state["query"]:
@@ -11,26 +13,40 @@ def detect_framework(state: RMAgentState) -> RMAgentState:
         state["framework_id"] = "debt_profiling"
     return state
 
-def route_to_subgraph(state: RMAgentState) -> str:
-    return state["framework_id"]
+def route_to_workflow(state: RMAgentState) -> RMAgentState:
+    """
+    Instead of wiring workflows statically, dynamically call the appropriate workflow based on framework_id.
+    """
+    framework = state.get("framework_id")
+    if framework == "peer_comparison":
+        workflow = PeerComparisonWorkflow() #Returns compiled graph 
+    elif framework == "debt_profiling":
+        workflow = DebtProfilingWorkflow() # Returns compiled graph 
+    else:
+        raise ValueError(f"Unknown workflow {framework}")
+
+    # Invoke the workflow's compiled graph
+    result_state = workflow.graph.invoke(state)
+
+    # Merge results back into RM Agent state
+    state["result"] = result_state
+    return state
 
 def finalize_response(state: RMAgentState) -> RMAgentState:
     return state
 
 def build_rm_agent_graph(framework: str = "langgraph"):
-    peer_comparison_graph = PeerComparisonGraph(framework=framework).graph
-    debt_profiling_graph = DebtProfilingGraph(framework=framework).graph
-
     rm_graph_builder = StateGraph(RMAgentState)
+
     rm_graph_builder.add_node("detect_framework", detect_framework)
-    rm_graph_builder.add_node("peer_comparison", peer_comparison_graph)
-    rm_graph_builder.add_node("debt_profiling", debt_profiling_graph)
-    rm_graph_builder.set_entry_point("detect_framework")
-    rm_graph_builder.add_conditional_edges("detect_framework", route_to_subgraph)
+    rm_graph_builder.add_node("route_to_workflow", route_to_workflow)
     rm_graph_builder.add_node("finalize_response", finalize_response)
-    rm_graph_builder.add_edge("peer_comparison", "finalize_response")
-    rm_graph_builder.add_edge("debt_profiling", "finalize_response")
+
+    rm_graph_builder.set_entry_point("detect_framework")
+    rm_graph_builder.add_edge("detect_framework", "route_to_workflow")
+    rm_graph_builder.add_edge("route_to_workflow", "finalize_response")
     rm_graph_builder.add_edge("finalize_response", "__end__")
+
     return rm_graph_builder.compile()
 
 class RMMaxitAgent(MaxitAgent):
