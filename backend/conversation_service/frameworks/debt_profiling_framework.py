@@ -6,7 +6,7 @@ GRAPH_BUILD_HANDLERS = {
     "llamaindex": "build_with_llamaindex"  # Future
 }
 
-class DebtProfilingWorkflow:
+class DebtProfilingFramework:
     def __init__(self, framework: str = "langgraph"):
         if framework not in GRAPH_BUILD_HANDLERS:
             raise ValueError(f"Unknown framework: {framework}")
