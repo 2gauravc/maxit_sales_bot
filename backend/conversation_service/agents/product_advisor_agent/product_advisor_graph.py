@@ -1,4 +1,4 @@
-from conversation_service.frameworks.maxit_agent import MaxitAgent
+from conversation_service.agent_infrastructure.maxit_agent import MaxitAgent
 
 class ProductAdvisorMaxitAgent(MaxitAgent):
     def __init__(self, framework: str = "langgraph"):

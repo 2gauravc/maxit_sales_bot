@@ -1,10 +1,10 @@
 from langgraph.graph import StateGraph
 from conversation_service.states.rm_states import RMAgentState
-from conversation_service.frameworks.maxit_agent import MaxitAgent
+from conversation_service.agent_infrastructure.maxit_agent import MaxitAgent
 
 # Import workflows (now independent)
-from conversation_service.workflows.peer_comparison_workflow import PeerComparisonWorkflow
-from conversation_service.workflows.debt_profiling_workflow import DebtProfilingWorkflow
+from conversation_service.frameworks.peer_comparison_workflow import PeerComparisonWorkflow
+from conversation_service.frameworks.debt_profiling_workflow import DebtProfilingWorkflow
 
 def detect_framework(state: RMAgentState) -> RMAgentState:
     if "compare" in state["query"]:
