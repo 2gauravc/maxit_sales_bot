@@ -7,6 +7,8 @@ GRAPH_BUILD_HANDLERS = {
 }
 
 class PeerComparisonFramework:
+    intent_keywords = ["compare", "comparison", "profitability", "cost structure"]
+    
     def __init__(self, framework: str = "langgraph"):
         if framework not in GRAPH_BUILD_HANDLERS:
             raise ValueError(f"Unknown framework: {framework}")

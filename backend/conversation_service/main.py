@@ -1,15 +1,35 @@
 import argparse
 from conversation_service.agent_registry import load_agent
+from conversation_service.utils.user_lookup_service import UserLookupService
+
+# Define persona → agent mapping
+PERSONA_METADATA = {
+    "rm": {
+        "agent": "rm_agent",
+        "level": "relationship_manager",
+        "description": "Covers client companies, handles relationship insights."
+    },
+    "product_advisor": {
+        "agent": "product_advisor_agent",
+        "level": "advisor",
+        "description": "Advises on new products and solutions."
+    },
+    "team_lead": {
+        "agent": "team_lead_agent",    # Future
+        "level": "manager",
+        "description": "Leads RM teams, reviews portfolio health."
+    }
+}
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run a Maxit Agent.")
     
     parser.add_argument(
-        "--agent",
+        "--user_id",
         type=str,
-        required=False,
-        default="rm_agent",
-        help="Which agent to invoke (rm_agent, product_advisor_agent, etc.)"
+        required=True,
+        default="u1001",
+        help="User ID"
     )
     parser.add_argument(
         "--framework",
@@ -46,10 +66,26 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
+    # Step 1: Lookup user role
+    user_service = UserLookupService()
+    role = user_service.get_user_role(args.user_id)
+    if not role:
+        raise ValueError(f"User {args.user_id} not found in database.")
+
+    # Step 2: Map role → agent
+    role_key = role.lower().replace(" ", "_")  # make sure "Team Lead" becomes "team_lead" if needed
+    persona_info = PERSONA_METADATA.get(role_key)
+
+    if not persona_info:
+        raise ValueError(f"No persona metadata mapped for role {role}")
+
+    agent_name = persona_info["agent"]
+    
     # Load the right agent
-    agent = load_agent(args.agent, framework=args.framework)
+    agent = load_agent(agent_name, framework=args.framework)
 
     initial_state = {
+        "user_id": args.user_id,
         "query": args.query,
         "client_id": args.client_id
     }

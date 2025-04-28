@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: maxit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: maxit_user
+      POSTGRES_PASSWORD: maxit_pass
+      POSTGRES_DB: maxit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d/
+
+volumes:
+  postgres_data:

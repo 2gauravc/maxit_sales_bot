@@ -7,6 +7,8 @@ GRAPH_BUILD_HANDLERS = {
 }
 
 class DebtProfilingFramework:
+    intent_keywords = ["debt profile", "leverage", "borrow", "gearing"]
+    
     def __init__(self, framework: str = "langgraph"):
         if framework not in GRAPH_BUILD_HANDLERS:
             raise ValueError(f"Unknown framework: {framework}")
