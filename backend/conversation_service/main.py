@@ -2,7 +2,7 @@ import argparse
 import pprint
 from conversation_service.agent_registry import load_agent
 from conversation_service.utils.user_lookup_service import UserLookupService
-from conversation_service.utils.query_classifier import classify_query_intent
+from conversation_service.utils.framework_detector import detect_framework
 from conversation_service.utils.entity_detector import detect_entities
 from conversation_service.config.config import CONFIG
 
@@ -105,7 +105,7 @@ def main():
         entity_name = detected_entities[0]["entity_name"]  # Pick the best one
 
     # Step 4: Detect the framework 
-    matches = classify_query_intent(args.query)
+    matches = detect_framework(args.query)
     framework_id = None
     if matches:
     # Sort matches by highest confidence first

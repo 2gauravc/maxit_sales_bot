@@ -1,4 +1,8 @@
 # conversation_service/config/config.py
+import os
+from dotenv import load_dotenv
+# Load .env into environment
+load_dotenv()
 
 class Config:
     """
@@ -15,11 +19,11 @@ class Config:
     ENTITY_ALLOWED_TYPES = ["ORG"]  # Model return type = ORG for companies
 
     # Database Settings (Optional if you want)
-    POSTGRES_DB = "maxit_db"
-    POSTGRES_USER = "maxit_user"
-    POSTGRES_PASSWORD = "maxit_pass"
-    POSTGRES_HOST = "localhost"
-    POSTGRES_PORT = "5432"
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
 # Global instance
 CONFIG = Config()

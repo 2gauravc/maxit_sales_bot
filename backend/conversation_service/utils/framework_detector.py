@@ -7,7 +7,7 @@ from conversation_service.frameworks.framework_registry import FRAMEWORK_CLASSES
 # Load Huggingface Zero-Shot Classifier
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
-def classify_query_intent(query: str, confidence_threshold: float = 0.7) -> Optional[str]:
+def detect_framework(query: str, confidence_threshold: float = 0.7) -> Optional[str]:
     """
     Classify the user query to detect framework intent.
     Now matches against framework display names instead of intent keywords.
