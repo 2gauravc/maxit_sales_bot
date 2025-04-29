@@ -1,0 +1,19 @@
+[project]
+name = "maxit-sales-bot"
+version = "0.1.0"
+description = "Conversational agent backend for Maxit project"
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "psycopg2-binary>=2.9.5",
+    "transformers>=4.39.3",
+    "torch>=2.1.2",
+    "langgraph>=0.0.15",  # You are using LangGraph
+    "fastapi>=0.110.0",    # For upcoming API server
+    "uvicorn[standard]>=0.29.0" # To serve FastAPI
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
