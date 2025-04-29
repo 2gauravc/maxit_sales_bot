@@ -21,7 +21,8 @@ def detect_entities(text: str) -> List[Dict[str, float]]:
                 "confidence": ent["score"],
                 "type": ent["entity_group"]
             })
-
+    print (detected)
+    
     return detected
 
 # ----------------------------------------------------------
