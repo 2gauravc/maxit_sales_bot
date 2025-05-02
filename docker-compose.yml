@@ -1,15 +1,47 @@
 services:
-  postgres:
+  app-db:
     image: postgres:14
-    container_name: maxit-postgres
+    container_name: postgres-app
     restart: unless-stopped
     env_file:
       - ./.env
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/initdb:/docker-entrypoint-initdb.d/
+      - pg_app_data:/var/lib/postgresql/data
+      - ./backend/initdb:/docker-entrypoint-initdb.d/ #init scripts for table creation 
+    
+    # 🔹 OpenWebUI Postgres (isolated)
+  
+  openwebui-db:
+    image: postgres:14
+    container_name: postgres-openwebui
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openwebui
+      POSTGRES_USER: webui
+      POSTGRES_PASSWORD: webuipass
+    volumes:
+      - pg_openwebui_data:/var/lib/postgresql/data
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    environment:
+      #- OLLAMA_BASE_URL=http://ollama:11434
+      - DATABASE_URL=postgresql://webui:webuipass@openwebui-db:5432/openwebui
+      - WEBUI_SECRET_KEY=changeme
+      - HOST=0.0.0.0
+      - WEBUI_AUTH=False
+    depends_on:
+      - openwebui-db
+    volumes:
+      - openwebui_data:/app/backend/data
 
 volumes:
-  postgres_data:
+  pg_app_data: #Stores your app’s PostgreSQL database files
+  pg_openwebui_data: # Stores OpenWebUI’s own PostgreSQL database files
+  openwebui_data:   # Stores non-database persistent data used by the OpenWebUI app itself
