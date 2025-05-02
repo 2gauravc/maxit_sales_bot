@@ -1,5 +1,5 @@
 services:
-  app-db:
+  app_db:
     image: postgres:14
     container_name: postgres-app
     restart: unless-stopped
@@ -21,6 +21,8 @@ services:
       POSTGRES_DB: openwebui
       POSTGRES_USER: webui
       POSTGRES_PASSWORD: webuipass
+    ports:
+    - "5433:5432" 
     volumes:
       - pg_openwebui_data:/var/lib/postgresql/data
 
